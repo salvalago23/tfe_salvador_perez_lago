@@ -31,7 +31,7 @@ El dataset completo ocupa ~13 GB
 ## Estructura del Proyecto
 
 ```
-tfm_segmentacion/
+tfe_salvador_perez_lago/
 ├── README.md                      # Documentación principal del proyecto
 ├── environment.yml                # Dependencias del entorno conda
 ├── download_dataset.py            # Script de descarga del dataset ISIC 2018
