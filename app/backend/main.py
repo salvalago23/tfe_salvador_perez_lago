@@ -478,14 +478,26 @@ def image_to_base64(image: Image.Image, format: str = "PNG") -> str:
     return base64.b64encode(buffer.getvalue()).decode()
 
 def create_overlay(original: Image.Image, mask: np.ndarray, alpha: float = 0.5) -> Image.Image:
-    """Crea una superposición de la máscara sobre la imagen original"""
-    original = original.resize(Config.TARGET_SIZE, Image.BILINEAR)
+    """
+    Crea una superposición de la máscara sobre la imagen original.
+    
+    La máscara ya debe estar en el mismo tamaño que la imagen original
+    (gracias al procesamiento con padding y posterior restauración al tamaño original).
+    """
     original_np = np.array(original)
     
     if len(original_np.shape) == 2:
         original_np = np.stack([original_np] * 3, axis=-1)
     elif original_np.shape[-1] == 4:
         original_np = original_np[:, :, :3]
+    
+    # Asegurarse de que la máscara tiene el mismo tamaño que la imagen
+    # (esto no debería ser necesario si el pipeline está correcto, pero por seguridad)
+    if mask.shape[:2] != original_np.shape[:2]:
+        from PIL import Image as PILImage
+        mask_pil = PILImage.fromarray((mask * 255).astype(np.uint8))
+        mask_pil = mask_pil.resize((original_np.shape[1], original_np.shape[0]), PILImage.NEAREST)
+        mask = np.array(mask_pil) / 255.0
     
     # Crear máscara coloreada (verde para segmentación)
     overlay = original_np.copy()
@@ -515,6 +527,13 @@ def analyze_abcd_features(image: np.ndarray, mask: np.ndarray) -> ABCDFeatures:
     Returns:
         ABCDFeatures con el análisis clínico
     """
+    # Asegurarse de que la imagen y la máscara tienen el mismo tamaño
+    if mask.shape[:2] != image.shape[:2]:
+        from PIL import Image as PILImage
+        mask_pil = PILImage.fromarray((mask * 255).astype(np.uint8))
+        mask_pil = mask_pil.resize((image.shape[1], image.shape[0]), PILImage.NEAREST)
+        mask = np.array(mask_pil) / 255.0
+    
     # Inicializar el analizador
     analyzer = ABCDAnalyzer(pixels_per_mm=10.0)  # Approximate conversion
     
