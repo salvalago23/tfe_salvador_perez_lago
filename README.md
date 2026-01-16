@@ -3,7 +3,7 @@
 
 ## Descarga del proyecto
 - git lfs install
-- git clone https://github.com/yourname/your-repo.git
+- git clone https://github.com/salvalago23/tfe_salvador_perez_lago.git
 
 # Instalación (en el directorio raíz del proyecto)
 - conda env create -f environment.yml
