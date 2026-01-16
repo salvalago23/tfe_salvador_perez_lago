@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segmentación de Lesiones Cutáneas</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        /* Main layout */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 2rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-success {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Patient list */
+        .patient-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .patient-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .patient-item:hover {
+            background: #f1f5f9;
+        }
+
+        .patient-item.active {
+            background: #dbeafe;
+            border-left: 3px solid var(--primary);
+        }
+
+        .patient-item:last-child {
+            border-bottom: none;
+        }
+
+        .patient-name {
+            font-weight: 500;
+        }
+
+        .patient-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Content area */
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Upload area */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary);
+            background: #f0f9ff;
+        }
+
+        .upload-zone i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .upload-zone h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-zone p {
+            color: var(--text-secondary);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Preview */
+        .preview-container {
+            display: none;
+            text-align: center;
+        }
+
+        .preview-container.active {
+            display: block;
+        }
+
+        .preview-image {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Results grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .result-item {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .result-item h4 {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .result-item img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Stats */
+        .stats-row {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 150px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* History */
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .history-item {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .history-item:hover {
+            transform: translateY(-4px);
+        }
+
+        .history-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .history-meta {
+            padding: 1rem;
+        }
+
+        .history-date {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .history-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* ABCD Analysis Styles */
+        .abcd-analysis {
+            border-top: 2px solid var(--border);
+            padding-top: 1.5rem;
+        }
+
+        .risk-overview {
+            text-align: center;
+        }
+
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: var(--radius);
+            font-size: 1.1rem;
+            background: #f1f5f9;
+        }
+
+        .risk-badge.risk-low {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border: 2px solid var(--secondary);
+        }
+
+        .risk-badge.risk-medium {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid var(--warning);
+        }
+
+        .risk-badge.risk-high {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border: 2px solid var(--danger);
+        }
+
+        .risk-label {
+            color: var(--text-secondary);
+        }
+
+        .risk-value {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .risk-score {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .abcd-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .abcd-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .abcd-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .abcd-letter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .abcd-title {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .abcd-risk {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .abcd-risk.risk-bajo { background: #d1fae5; color: #065f46; }
+        .abcd-risk.risk-medio { background: #fef3c7; color: #92400e; }
+        .abcd-risk.risk-alto { background: #fee2e2; color: #991b1b; }
+
+        .abcd-content {
+            padding: 1rem;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.35rem 0;
+            font-size: 0.9rem;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .metric-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .abcd-desc {
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .color-flags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .color-flag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .color-flag.present {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .color-flag.absent {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .abcd-disclaimer {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .abcd-disclaimer i {
+            color: #f59e0b;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .abcd-disclaimer p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #92400e;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .abcd-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .abcd-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1><i class="fas fa-microscope"></i> Segmentación de Lesiones Cutáneas</h1>
+        <p>Sistema de análisis de imágenes dermatológicas mediante Deep Learning</p>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- Patient Selection -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user-injured"></i> Gestión de Pacientes
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-primary btn-block" onclick="showNewPatientModal()">
+                        <i class="fas fa-plus"></i> Nuevo Paciente
+                    </button>
+                    
+                    <div id="patientList" class="patient-list" style="margin-top: 1rem;">
+                        <!-- Patients loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Selection -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-brain"></i> Selección de Modelo
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="modelSelect">Modelo de segmentación</label>
+                        <select id="modelSelect" class="form-control">
+                            <!-- Models loaded dynamically -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle"></i> Información
+                </div>
+                <div class="card-body">
+                    <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                        Esta aplicación utiliza redes neuronales profundas para segmentar automáticamente 
+                        lesiones cutáneas en imágenes dermoscópicas.
+                    </p>
+                    <hr style="margin: 1rem 0; border: none; border-top: 1px solid var(--border);">
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                        <strong>Dispositivo:</strong> <span id="deviceInfo">Cargando...</span>
+                    </p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <!-- Upload Section -->
+            <div class="card" id="uploadSection">
+                <div class="card-header">
+                    <i class="fas fa-upload"></i> Subir Imagen
+                </div>
+                <div class="card-body">
+                    <div id="noPatientAlert" class="alert alert-error" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i> Por favor, selecciona o crea un paciente primero.
+                    </div>
+                    
+                    <div id="uploadZone" class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>Arrastra una imagen aquí</h3>
+                        <p>o haz clic para seleccionar un archivo</p>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;">Formatos soportados: JPG, PNG</p>
+                    </div>
+                    
+                    <div id="previewContainer" class="preview-container">
+                        <img id="previewImage" class="preview-image" alt="Preview">
+                        <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: center;">
+                            <button class="btn btn-primary" id="analyzeBtn" onclick="runPrediction()">
+                                <i class="fas fa-play"></i> Analizar Imagen
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetUpload()">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="card" id="resultsSection" style="display: none;">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar"></i> Resultados del Análisis
+                </div>
+                <div class="card-body">
+                    <div class="stats-row" style="margin-bottom: 1.5rem;">
+                        <div class="stat-card">
+                            <div class="stat-value" id="inferenceTime">-</div>
+                            <div class="stat-label">Tiempo de inferencia (ms)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="lesionCoverage">-</div>
+                            <div class="stat-label">Cobertura de lesión (%)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="modelUsed">-</div>
+                            <div class="stat-label">Modelo utilizado</div>
+                        </div>
+                    </div>
+                    
+                    <div class="results-grid">
+                        <div class="result-item">
+                            <h4>Imagen Original</h4>
+                            <img id="resultOriginal" alt="Original">
+                        </div>
+                        <div class="result-item">
+                            <h4>Máscara de Segmentación</h4>
+                            <img id="resultMask" alt="Mask">
+                        </div>
+                        <div class="result-item">
+                            <h4>Superposición</h4>
+                            <img id="resultOverlay" alt="Overlay">
+                        </div>
+                    </div>
+                    
+                    <!-- ABCD Analysis Section -->
+                    <div id="abcdSection" class="abcd-analysis" style="display: none; margin-top: 2rem;">
+                        <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-stethoscope"></i> Análisis Dermatoscópico ABCD
+                        </h3>
+                        
+                        <!-- Overall Risk -->
+                        <div class="risk-overview" style="margin-bottom: 1.5rem;">
+                            <div class="risk-badge" id="overallRiskBadge">
+                                <span class="risk-label">Riesgo Global:</span>
+                                <span class="risk-value" id="overallRiskValue">-</span>
+                                <span class="risk-score" id="overallRiskScore">(-/10)</span>
+                            </div>
+                        </div>
+
+                        <div class="abcd-grid">
+                            <!-- A - Asymmetry -->
+                            <div class="abcd-card">
+                                <div class="abcd-header">
+                                    <span class="abcd-letter">A</span>
+                                    <span class="abcd-title">Asimetría</span>
+                                    <span class="abcd-risk" id="asymmetryRisk">-</span>
+                                </div>
+                                <div class="abcd-content">
+                                    <div class="metric-row">
+                                        <span>Puntuación:</span>
+                                        <strong id="asymmetryScore">-</strong>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Eje X:</span>
+                                        <span id="asymmetryX">-</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Eje Y:</span>
+                                        <span id="asymmetryY">-</span>
+                                    </div>
+                                    <p class="abcd-desc">Mide la similitud de la lesión al dividirla por sus ejes principales.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- B - Border -->
+                            <div class="abcd-card">
+                                <div class="abcd-header">
+                                    <span class="abcd-letter">B</span>
+                                    <span class="abcd-title">Borde</span>
+                                    <span class="abcd-risk" id="borderRisk">-</span>
+                                </div>
+                                <div class="abcd-content">
+                                    <div class="metric-row">
+                                        <span>Irregularidad:</span>
+                                        <strong id="borderIrregularity">-</strong>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Compacidad:</span>
+                                        <span id="borderCompactness">-</span>
+                                    </div>
+                                    <p class="abcd-desc">Evalúa la regularidad del contorno de la lesión.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- C - Color -->
+                            <div class="abcd-card">
+                                <div class="abcd-header">
+                                    <span class="abcd-letter">C</span>
+                                    <span class="abcd-title">Color</span>
+                                    <span class="abcd-risk" id="colorRisk">-</span>
+                                </div>
+                                <div class="abcd-content">
+                                    <div class="metric-row">
+                                        <span>Nº Colores:</span>
+                                        <strong id="colorCount">-</strong>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Varianza:</span>
+                                        <span id="colorVariance">-</span>
+                                    </div>
+                                    <div class="color-flags" id="colorFlags">
+                                        <!-- Populated dynamically -->
+                                    </div>
+                                    <p class="abcd-desc">Detecta colores de riesgo: azul-gris, blanco, rojo.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- D - Diameter -->
+                            <div class="abcd-card">
+                                <div class="abcd-header">
+                                    <span class="abcd-letter">D</span>
+                                    <span class="abcd-title">Diámetro</span>
+                                    <span class="abcd-risk" id="diameterRisk">-</span>
+                                </div>
+                                <div class="abcd-content">
+                                    <div class="metric-row">
+                                        <span>Diámetro:</span>
+                                        <strong id="diameterMm">-</strong> mm
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Área:</span>
+                                        <span id="areaMm2">-</span> mm²
+                                    </div>
+                                    <p class="abcd-desc">Lesiones >6mm requieren mayor atención.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="abcd-disclaimer">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p><strong>Aviso:</strong> Este análisis es únicamente orientativo y no sustituye el diagnóstico profesional. 
+                            Consulte siempre con un dermatólogo para una evaluación clínica completa.</p>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 1.5rem;">
+                        <button class="btn btn-primary" onclick="resetUpload()">
+                            <i class="fas fa-redo"></i> Nuevo Análisis
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient History Section -->
+            <div class="card" id="historySection" style="display: none;">
+                <div class="card-header">
+                    <i class="fas fa-history"></i> Historial del Paciente
+                    <span id="historyPatientName" style="margin-left: auto; font-weight: normal; color: var(--text-secondary);"></span>
+                </div>
+                <div class="card-body">
+                    <div id="historyGrid" class="history-grid">
+                        <!-- History items loaded dynamically -->
+                    </div>
+                    <div id="historyEmpty" class="empty-state" style="display: none;">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No hay análisis previos para este paciente</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Patient Modal -->
+    <div class="modal-overlay" id="newPatientModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Nuevo Paciente</h3>
+                <button class="modal-close" onclick="hideNewPatientModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="newPatientForm" onsubmit="createPatient(event)">
+                    <div class="form-group">
+                        <label for="patientName">Nombre del paciente *</label>
+                        <input type="text" id="patientName" class="form-control" required placeholder="Ej: Juan García">
+                    </div>
+                    <div class="form-group">
+                        <label for="patientNotes">Notas (opcional)</label>
+                        <textarea id="patientNotes" class="form-control" rows="3" placeholder="Observaciones adicionales..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block">
+                        <i class="fas fa-save"></i> Crear Paciente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Detail Modal -->
+    <div class="modal-overlay" id="resultDetailModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-image"></i> Detalle del Análisis</h3>
+                <button class="modal-close" onclick="hideResultDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="resultDetailContent">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // Estado
+        // ========================================
+        let selectedPatientId = null;
+        let selectedFile = null;
+        let patients = [];
+        let models = [];
+
+        // ========================================
+        // Funciones de API
+        // ========================================
+        const API_BASE = '/api';
+
+        async function fetchAPI(endpoint, options = {}) {
+            const response = await fetch(`${API_BASE}${endpoint}`, options);
+            return response.json();
+        }
+
+        // ========================================
+        // Inicialización
+        // ========================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadModels();
+            await loadPatients();
+            await checkHealth();
+            setupDragDrop();
+        });
+
+        async function checkHealth() {
+            try {
+                const data = await fetchAPI('/health');
+                document.getElementById('deviceInfo').textContent = data.device;
+            } catch (e) {
+                document.getElementById('deviceInfo').textContent = 'Error de conexión';
+            }
+        }
+
+        async function loadModels() {
+            try {
+                const data = await fetchAPI('/models');
+                models = data.models;
+                
+                const select = document.getElementById('modelSelect');
+                select.innerHTML = models
+                    .filter(m => m.available)
+                    .map(m => `<option value="${m.key}">${m.name}</option>`)
+                    .join('');
+                
+                if (models.filter(m => m.available).length === 0) {
+                    select.innerHTML = '<option value="">No hay modelos disponibles</option>';
+                }
+            } catch (e) {
+                console.error('Error loading models:', e);
+            }
+        }
+
+        async function loadPatients() {
+            try {
+                const data = await fetchAPI('/patients');
+                patients = data.patients;
+                renderPatientList();
+            } catch (e) {
+                console.error('Error loading patients:', e);
+            }
+        }
+
+        // ========================================
+        // Gestión de pacientes
+        // ========================================
+        function renderPatientList() {
+            const container = document.getElementById('patientList');
+            
+            if (patients.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 1.5rem;">
+                        <i class="fas fa-users" style="font-size: 2rem;"></i>
+                        <p style="margin-top: 0.5rem;">No hay pacientes registrados</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = patients.map(p => `
+                <div class="patient-item ${p.id === selectedPatientId ? 'active' : ''}" 
+                     onclick="selectPatient('${p.id}')">
+                    <div>
+                        <div class="patient-name">${p.name}</div>
+                        <div class="patient-date">${formatDate(p.created_at)}</div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deletePatient('${p.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function selectPatient(patientId) {
+            selectedPatientId = patientId;
+            renderPatientList();
+            loadPatientHistory();
+            document.getElementById('noPatientAlert').style.display = 'none';
+        }
+
+        function showNewPatientModal() {
+            document.getElementById('newPatientModal').classList.add('active');
+            document.getElementById('patientName').focus();
+        }
+
+        function hideNewPatientModal() {
+            document.getElementById('newPatientModal').classList.remove('active');
+            document.getElementById('newPatientForm').reset();
+        }
+
+        async function createPatient(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('patientName').value;
+            const notes = document.getElementById('patientNotes').value;
+            
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('notes', notes);
+            
+            try {
+                const data = await fetchAPI('/patients', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (data.success) {
+                    await loadPatients();
+                    selectPatient(data.patient.id);
+                    hideNewPatientModal();
+                }
+            } catch (e) {
+                console.error('Error creating patient:', e);
+                alert('Error al crear el paciente');
+            }
+        }
+
+        async function deletePatient(patientId) {
+            if (!confirm('¿Estás seguro de eliminar este paciente y todo su historial?')) {
+                return;
+            }
+            
+            try {
+                await fetchAPI(`/patients/${patientId}`, { method: 'DELETE' });
+                
+                if (selectedPatientId === patientId) {
+                    selectedPatientId = null;
+                    document.getElementById('historySection').style.display = 'none';
+                }
+                
+                await loadPatients();
+            } catch (e) {
+                console.error('Error deleting patient:', e);
+                alert('Error al eliminar el paciente');
+            }
+        }
+
+        async function deleteResult(resultId) {
+            if (!confirm('¿Estás seguro de eliminar este análisis?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetchAPI(`/results/${resultId}`, { method: 'DELETE' });
+                
+                if (response.success) {
+                    await loadPatientHistory();
+                } else {
+                    alert('Error al eliminar el análisis');
+                }
+            } catch (e) {
+                console.error('Error deleting result:', e);
+                alert('Error al eliminar el análisis');
+            }
+        }
+
+        async function loadPatientHistory() {
+            if (!selectedPatientId) return;
+            
+            const patient = patients.find(p => p.id === selectedPatientId);
+            document.getElementById('historyPatientName').textContent = patient?.name || '';
+            
+            try {
+                const data = await fetchAPI(`/patients/${selectedPatientId}/results`);
+                const container = document.getElementById('historyGrid');
+                const emptyState = document.getElementById('historyEmpty');
+                const section = document.getElementById('historySection');
+                
+                section.style.display = 'block';
+                
+                if (data.results.length === 0) {
+                    container.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+                
+                container.style.display = 'grid';
+                emptyState.style.display = 'none';
+                
+                container.innerHTML = data.results.map(r => `
+                    <div class="history-item" onclick="showResultDetail('${r.id}')">
+                        <img src="data:image/png;base64,${r.overlay_image}" alt="Result">
+                        <div class="history-meta">
+                            <div class="history-date" style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>${formatDateTime(r.created_at)}</span>
+                                <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteResult('${r.id}')" title="Eliminar análisis">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <div class="history-stats">
+                                <span><i class="fas fa-clock"></i> ${r.inference_time_ms}ms</span>
+                                <span><i class="fas fa-percentage"></i> ${r.lesion_coverage}%</span>
+                            </div>
+                            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">
+                                ${r.model_used}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('Error loading history:', e);
+            }
+        }
+
+        // ========================================
+        // Subida de archivos y predicción
+        // ========================================
+        function setupDragDrop() {
+            const zone = document.getElementById('uploadZone');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                zone.addEventListener(eventName, preventDefaults);
+            });
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                zone.addEventListener(eventName, () => zone.classList.add('dragover'));
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                zone.addEventListener(eventName, () => zone.classList.remove('dragover'));
+            });
+            
+            zone.addEventListener('drop', handleDrop);
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function handleDrop(e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(event) {
+            if (event.target.files.length > 0) {
+                handleFile(event.target.files[0]);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor, selecciona un archivo de imagen válido');
+                return;
+            }
+            
+            selectedFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('uploadZone').style.display = 'none';
+                document.getElementById('previewContainer').classList.add('active');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetUpload() {
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadZone').style.display = 'block';
+            document.getElementById('previewContainer').classList.remove('active');
+            document.getElementById('resultsSection').style.display = 'none';
+        }
+
+        async function runPrediction() {
+            if (!selectedPatientId) {
+                document.getElementById('noPatientAlert').style.display = 'block';
+                return;
+            }
+            
+            if (!selectedFile) {
+                alert('Por favor, selecciona una imagen primero');
+                return;
+            }
+            
+            const model = document.getElementById('modelSelect').value;
+            if (!model) {
+                alert('No hay modelos disponibles');
+                return;
+            }
+            
+            const btn = document.getElementById('analyzeBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner"></span> Analizando...';
+            btn.disabled = true;
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('model', model);
+            formData.append('patient_id', selectedPatientId);
+            
+            try {
+                const data = await fetchAPI('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (data.success && data.result) {
+                    displayResults(data.result);
+                    await loadPatientHistory();
+                } else {
+                    alert('Error en el análisis: ' + (data.error || 'Error desconocido'));
+                }
+            } catch (e) {
+                console.error('Prediction error:', e);
+                alert('Error de conexión al servidor');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function displayResults(result) {
+            document.getElementById('uploadZone').style.display = 'none';
+            document.getElementById('previewContainer').classList.remove('active');
+            
+            document.getElementById('inferenceTime').textContent = result.inference_time_ms;
+            document.getElementById('lesionCoverage').textContent = result.lesion_coverage.toFixed(1);
+            document.getElementById('modelUsed').textContent = result.model_used.split(' ')[0];
+            
+            document.getElementById('resultOriginal').src = `data:image/png;base64,${result.original_image}`;
+            document.getElementById('resultMask').src = `data:image/png;base64,${result.segmentation_mask}`;
+            document.getElementById('resultOverlay').src = `data:image/png;base64,${result.overlay_image}`;
+            
+            // Display ABCD analysis if available
+            if (result.abcd_features) {
+                displayABCDFeatures(result.abcd_features);
+            } else {
+                document.getElementById('abcdSection').style.display = 'none';
+            }
+            
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function displayABCDFeatures(abcd) {
+            const section = document.getElementById('abcdSection');
+            section.style.display = 'block';
+            
+            // Overall risk
+            const riskBadge = document.getElementById('overallRiskBadge');
+            riskBadge.className = 'risk-badge risk-' + abcd.overall_risk.toLowerCase();
+            document.getElementById('overallRiskValue').textContent = abcd.overall_risk;
+            document.getElementById('overallRiskScore').textContent = `(${abcd.risk_score}/10)`;
+            
+            // A - Asymmetry
+            document.getElementById('asymmetryScore').textContent = abcd.asymmetry_score;
+            document.getElementById('asymmetryX').textContent = abcd.asymmetry_x;
+            document.getElementById('asymmetryY').textContent = abcd.asymmetry_y;
+            const asymmetryRisk = document.getElementById('asymmetryRisk');
+            asymmetryRisk.textContent = abcd.asymmetry_risk;
+            asymmetryRisk.className = 'abcd-risk risk-' + abcd.asymmetry_risk.toLowerCase();
+            
+            // B - Border
+            document.getElementById('borderIrregularity').textContent = abcd.border_irregularity;
+            document.getElementById('borderCompactness').textContent = abcd.compactness;
+            const borderRisk = document.getElementById('borderRisk');
+            borderRisk.textContent = abcd.border_risk;
+            borderRisk.className = 'abcd-risk risk-' + abcd.border_risk.toLowerCase();
+            
+            // C - Color
+            document.getElementById('colorCount').textContent = abcd.num_colors;
+            document.getElementById('colorVariance').textContent = abcd.color_variance;
+            const colorRisk = document.getElementById('colorRisk');
+            colorRisk.textContent = abcd.color_risk;
+            colorRisk.className = 'abcd-risk risk-' + abcd.color_risk.toLowerCase();
+            
+            // Color flags
+            const colorFlags = document.getElementById('colorFlags');
+            colorFlags.innerHTML = `
+                <span class="color-flag ${abcd.has_blue_gray ? 'present' : 'absent'}">
+                    <i class="fas ${abcd.has_blue_gray ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
+                    Azul-gris
+                </span>
+                <span class="color-flag ${abcd.has_white ? 'present' : 'absent'}">
+                    <i class="fas ${abcd.has_white ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
+                    Blanco
+                </span>
+                <span class="color-flag ${abcd.has_red ? 'present' : 'absent'}">
+                    <i class="fas ${abcd.has_red ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
+                    Rojo
+                </span>
+            `;
+            
+            // D - Diameter
+            document.getElementById('diameterMm').textContent = abcd.diameter_mm;
+            document.getElementById('areaMm2').textContent = abcd.area_mm2;
+            const diameterRisk = document.getElementById('diameterRisk');
+            diameterRisk.textContent = abcd.diameter_risk;
+            diameterRisk.className = 'abcd-risk risk-' + abcd.diameter_risk.toLowerCase();
+        }
+
+        // ========================================
+        // Modal de detalle de resultado
+        // ========================================
+        function showResultDetail(resultId) {
+            // Find result in patient history
+            fetchAPI(`/patients/${selectedPatientId}/results`).then(data => {
+                const result = data.results.find(r => r.id === resultId);
+                if (!result) return;
+                
+                const content = document.getElementById('resultDetailContent');
+                
+                // Build ABCD summary if available
+                let abcdHtml = '';
+                if (result.abcd_features) {
+                    const abcd = result.abcd_features;
+                    abcdHtml = `
+                        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                            <h4 style="margin-bottom: 1rem;">
+                                <i class="fas fa-stethoscope"></i> Análisis ABCD
+                            </h4>
+                            <div class="risk-badge risk-${abcd.overall_risk.toLowerCase()}" style="margin-bottom: 1rem;">
+                                <span>Riesgo:</span>
+                                <strong>${abcd.overall_risk}</strong>
+                                <span>(${abcd.risk_score}/10)</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem;">
+                                <div><strong>A</strong> Asimetría: ${abcd.asymmetry_score} <span class="abcd-risk risk-${abcd.asymmetry_risk.toLowerCase()}">${abcd.asymmetry_risk}</span></div>
+                                <div><strong>B</strong> Borde: ${abcd.border_irregularity} <span class="abcd-risk risk-${abcd.border_risk.toLowerCase()}">${abcd.border_risk}</span></div>
+                                <div><strong>C</strong> Color: ${abcd.num_colors} colores <span class="abcd-risk risk-${abcd.color_risk.toLowerCase()}">${abcd.color_risk}</span></div>
+                                <div><strong>D</strong> Diámetro: ${abcd.diameter_mm}mm <span class="abcd-risk risk-${abcd.diameter_risk.toLowerCase()}">${abcd.diameter_risk}</span></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                content.innerHTML = `
+                    <div class="stats-row" style="margin-bottom: 1.5rem;">
+                        <div class="stat-card">
+                            <div class="stat-value">${result.inference_time_ms}</div>
+                            <div class="stat-label">Tiempo (ms)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${result.lesion_coverage.toFixed(1)}</div>
+                            <div class="stat-label">Cobertura (%)</div>
+                        </div>
+                    </div>
+                    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                        <strong>Modelo:</strong> ${result.model_used}<br>
+                        <strong>Fecha:</strong> ${formatDateTime(result.created_at)}
+                    </p>
+                    <div class="results-grid">
+                        <div class="result-item">
+                            <h4>Original</h4>
+                            <img src="data:image/png;base64,${result.original_image}" alt="Original">
+                        </div>
+                        <div class="result-item">
+                            <h4>Máscara</h4>
+                            <img src="data:image/png;base64,${result.segmentation_mask}" alt="Mask">
+                        </div>
+                        <div class="result-item">
+                            <h4>Superposición</h4>
+                            <img src="data:image/png;base64,${result.overlay_image}" alt="Overlay">
+                        </div>
+                    </div>
+                    ${abcdHtml}
+                `;
+                
+                document.getElementById('resultDetailModal').classList.add('active');
+            });
+        }
+
+        function hideResultDetailModal() {
+            document.getElementById('resultDetailModal').classList.remove('active');
+        }
+
+        // ========================================
+        // Utilidades
+        // ========================================
+        function formatDate(isoString) {
+            return new Date(isoString).toLocaleDateString('es-ES');
+        }
+
+        function formatDateTime(isoString) {
+            return new Date(isoString).toLocaleString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Close modals on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideNewPatientModal();
+                hideResultDetailModal();
+            }
+        });
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

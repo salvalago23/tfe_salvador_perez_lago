@@ -1,0 +1,349 @@
+{
+  "configuracion": {
+    "base_path": "../data",
+    "target_size": [
+      256,
+      256
+    ],
+    "batch_size": 16,
+    "num_workers": 4,
+    "epochs": 100,
+    "seed": 42,
+    "use_amp": true,
+    "warmup": {
+      "enabled": true,
+      "epochs": 5,
+      "start_factor": 0.1
+    },
+    "early_stopping": {
+      "enabled": true,
+      "patience": 10,
+      "min_delta": 0.001,
+      "monitor": "val_dice"
+    },
+    "experiments": [
+      {
+        "name": "U-Net B\u00e1sica",
+        "model_class": "UNet",
+        "model_kwargs": {
+          "features": [
+            64,
+            128,
+            256,
+            512
+          ]
+        },
+        "loss": "combined",
+        "loss_kwargs": {
+          "losses": [
+            "bce",
+            "dice"
+          ],
+          "weights": [
+            0.5,
+            0.5
+          ]
+        },
+        "learning_rate": 0.0001,
+        "weight_decay": 1e-05,
+        "scheduler": "plateau",
+        "scheduler_kwargs": {
+          "factor": 0.5,
+          "patience": 5
+        }
+      },
+      {
+        "name": "Attention U-Net",
+        "model_class": "AttentionUNet",
+        "model_kwargs": {
+          "features": [
+            64,
+            128,
+            256,
+            512
+          ]
+        },
+        "loss": "combined",
+        "loss_kwargs": {
+          "losses": [
+            "bce",
+            "dice"
+          ],
+          "weights": [
+            0.5,
+            0.5
+          ]
+        },
+        "learning_rate": 0.0001,
+        "weight_decay": 1e-05,
+        "scheduler": "plateau",
+        "scheduler_kwargs": {
+          "factor": 0.5,
+          "patience": 5
+        }
+      },
+      {
+        "name": "Residual U-Net",
+        "model_class": "ResidualUNet",
+        "model_kwargs": {
+          "features": [
+            64,
+            128,
+            256,
+            512
+          ]
+        },
+        "loss": "combined",
+        "loss_kwargs": {
+          "losses": [
+            "bce",
+            "dice"
+          ],
+          "weights": [
+            0.5,
+            0.5
+          ]
+        },
+        "learning_rate": 0.0001,
+        "weight_decay": 1e-05,
+        "scheduler": "plateau",
+        "scheduler_kwargs": {
+          "factor": 0.5,
+          "patience": 5
+        }
+      },
+      {
+        "name": "U-Net++",
+        "model_class": "UNetPlusPlus",
+        "model_kwargs": {
+          "features": [
+            32,
+            64,
+            128,
+            256
+          ],
+          "deep_supervision": false
+        },
+        "loss": "combined",
+        "loss_kwargs": {
+          "losses": [
+            "bce",
+            "dice"
+          ],
+          "weights": [
+            0.5,
+            0.5
+          ]
+        },
+        "learning_rate": 0.0001,
+        "weight_decay": 0.0001,
+        "scheduler": "plateau",
+        "scheduler_kwargs": {
+          "factor": 0.5,
+          "patience": 5
+        }
+      },
+      {
+        "name": "DeepLabV3+",
+        "model_class": "DeepLabV3Plus",
+        "model_kwargs": {
+          "features": [
+            64,
+            128,
+            256,
+            512
+          ],
+          "aspp_channels": 512,
+          "atrous_rates": [
+            6,
+            12,
+            18
+          ]
+        },
+        "loss": "combined",
+        "loss_kwargs": {
+          "losses": [
+            "bce",
+            "dice"
+          ],
+          "weights": [
+            0.5,
+            0.5
+          ]
+        },
+        "learning_rate": 0.0001,
+        "weight_decay": 0.0001,
+        "scheduler": "poly",
+        "scheduler_kwargs": {
+          "power": 0.9
+        }
+      },
+      {
+        "name": "TransUNet",
+        "model_class": "TransUNet",
+        "model_kwargs": {
+          "img_size": 256,
+          "base_features": 64,
+          "embed_dim": 512,
+          "num_heads": 8,
+          "num_layers": 8
+        },
+        "loss": "combined",
+        "loss_kwargs": {
+          "losses": [
+            "bce",
+            "dice"
+          ],
+          "weights": [
+            0.5,
+            0.5
+          ]
+        },
+        "learning_rate": 0.0001,
+        "weight_decay": 0.01,
+        "scheduler": "cosine",
+        "scheduler_kwargs": {
+          "T_max": 30,
+          "eta_min": 1e-06
+        }
+      }
+    ]
+  },
+  "resultados": {
+    "U-Net B\u00e1sica": {
+      "best_val_dice": 0.8797196064676557,
+      "final_val_dice": 0.8719416345868792,
+      "final_val_iou": 0.7739677514348712,
+      "model_class": "UNet",
+      "loss_function": "combined"
+    },
+    "Attention U-Net": {
+      "best_val_dice": 0.8833629403795514,
+      "final_val_dice": 0.877229128565107,
+      "final_val_iou": 0.7825769441468375,
+      "model_class": "AttentionUNet",
+      "loss_function": "combined"
+    },
+    "Residual U-Net": {
+      "best_val_dice": 0.8764502917017255,
+      "final_val_dice": 0.8550451568194798,
+      "final_val_iou": 0.7475613100188119,
+      "model_class": "ResidualUNet",
+      "loss_function": "combined"
+    },
+    "U-Net++": {
+      "best_val_dice": 0.8672540613583156,
+      "final_val_dice": 0.8648114970752171,
+      "final_val_iou": 0.7624551739011493,
+      "model_class": "UNetPlusPlus",
+      "loss_function": "combined"
+    },
+    "DeepLabV3+": {
+      "best_val_dice": 0.8978873065539769,
+      "final_val_dice": 0.8948276468685695,
+      "final_val_iou": 0.8115014178412301,
+      "model_class": "DeepLabV3Plus",
+      "loss_function": "combined"
+    },
+    "TransUNet": {
+      "best_val_dice": 0.8854882546833583,
+      "final_val_dice": 0.875433121408735,
+      "final_val_iou": 0.7800058722496033,
+      "model_class": "TransUNet",
+      "loss_function": "combined"
+    }
+  },
+  "analisis": [
+    {
+      "Modelo": "U-Net B\u00e1sica",
+      "Dice Inicial": 0.7003350172724042,
+      "Dice Final": 0.8719416345868792,
+      "Mejora Dice": 0.17160661731447502,
+      "Mejor Dice": 0.8797196064676557,
+      "Overfitting Dice": 0.009963687134798227,
+      "Loss Inicial": 0.46821105054446627,
+      "Loss Final": 0.1532252739582743,
+      "Mejora Loss": 0.314985776586192,
+      "Overfitting Loss": 0.0623148142391359,
+      "\u00c9pocas para converger": "38",
+      "Tiempo Total (min)": 14.998954860369365,
+      "Tiempo/\u00c9poca (s)": 18.748693575461704
+    },
+    {
+      "Modelo": "Attention U-Net",
+      "Dice Inicial": 0.6576840281486511,
+      "Dice Final": 0.877229128565107,
+      "Mejora Dice": 0.21954510041645592,
+      "Mejor Dice": 0.8833629403795514,
+      "Overfitting Dice": 0.011283992039043067,
+      "Loss Inicial": 0.4967780453818185,
+      "Loss Final": 0.14995424023696355,
+      "Mejora Loss": 0.346823805144855,
+      "Overfitting Loss": 0.06400188628577577,
+      "\u00c9pocas para converger": "40",
+      "Tiempo Total (min)": 19.712082509199778,
+      "Tiempo/\u00c9poca (s)": 23.654499011039732
+    },
+    {
+      "Modelo": "Residual U-Net",
+      "Dice Inicial": 0.7336327178137643,
+      "Dice Final": 0.8550451568194798,
+      "Mejora Dice": 0.12141243900571552,
+      "Mejor Dice": 0.8764502917017255,
+      "Overfitting Dice": 0.02747658657228713,
+      "Loss Inicial": 0.45215860860688345,
+      "Loss Final": 0.18530961658273423,
+      "Mejora Loss": 0.26684899202414925,
+      "Overfitting Loss": 0.09642537668137112,
+      "\u00c9pocas para converger": "24",
+      "Tiempo Total (min)": 12.001780744393667,
+      "Tiempo/\u00c9poca (s)": 21.179613078341763
+    },
+    {
+      "Modelo": "U-Net++",
+      "Dice Inicial": 0.5783548525401524,
+      "Dice Final": 0.8648114970752171,
+      "Mejora Dice": 0.2864566445350647,
+      "Mejor Dice": 0.8672540613583156,
+      "Overfitting Dice": 0.005213997509113666,
+      "Loss Inicial": 0.6126921815531594,
+      "Loss Final": 0.16774745924132212,
+      "Mejora Loss": 0.4449447223118373,
+      "Overfitting Loss": 0.04448569705627689,
+      "\u00c9pocas para converger": "17",
+      "Tiempo Total (min)": 8.374022086461386,
+      "Tiempo/\u00c9poca (s)": 18.60893796991419
+    },
+    {
+      "Modelo": "DeepLabV3+",
+      "Dice Inicial": 0.6119945091860635,
+      "Dice Final": 0.8948276468685695,
+      "Mejora Dice": 0.28283313768250606,
+      "Mejor Dice": 0.8978873065539769,
+      "Overfitting Dice": -0.005901484104691379,
+      "Loss Inicial": 0.688604256936482,
+      "Loss Final": 0.12701895194394247,
+      "Mejora Loss": 0.5615853049925394,
+      "Overfitting Loss": 0.04312158730768022,
+      "\u00c9pocas para converger": "20",
+      "Tiempo Total (min)": 3.396443847815196,
+      "Tiempo/\u00c9poca (s)": 6.792887695630392
+    },
+    {
+      "Modelo": "TransUNet",
+      "Dice Inicial": 0.5795976093837193,
+      "Dice Final": 0.875433121408735,
+      "Mejora Dice": 0.2958355120250157,
+      "Mejor Dice": 0.8854882546833583,
+      "Overfitting Dice": -0.007606828496569684,
+      "Loss Inicial": 0.6285255551338196,
+      "Loss Final": 0.15742723856653487,
+      "Mejora Loss": 0.47109831656728474,
+      "Overfitting Loss": 0.0570939575096944,
+      "\u00c9pocas para converger": "17",
+      "Tiempo Total (min)": 3.5799187501271565,
+      "Tiempo/\u00c9poca (s)": 7.9553750002825705
+    }
+  ],
+  "timestamp": "2026-01-16T01:08:03.217082"
+}
