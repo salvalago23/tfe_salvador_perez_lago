@@ -624,29 +624,6 @@
             color: #065f46;
         }
 
-        .abcd-disclaimer {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background: #fffbeb;
-            border: 1px solid #fbbf24;
-            border-radius: 8px;
-            display: flex;
-            gap: 0.75rem;
-            align-items: flex-start;
-        }
-
-        .abcd-disclaimer i {
-            color: #f59e0b;
-            font-size: 1.25rem;
-            flex-shrink: 0;
-        }
-
-        .abcd-disclaimer p {
-            margin: 0;
-            font-size: 0.9rem;
-            color: #92400e;
-        }
-
         /* Responsive */
         @media (max-width: 1024px) {
             .main-container {
@@ -717,31 +694,17 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Info Card -->
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-info-circle"></i> Información
-                </div>
-                <div class="card-body">
-                    <p style="font-size: 0.9rem; color: var(--text-secondary);">
-                        Esta aplicación utiliza redes neuronales profundas para segmentar automáticamente 
-                        lesiones cutáneas en imágenes dermoscópicas.
-                    </p>
-                    <hr style="margin: 1rem 0; border: none; border-top: 1px solid var(--border);">
-                    <p style="font-size: 0.85rem; color: var(--text-secondary);">
-                        <strong>Dispositivo:</strong> <span id="deviceInfo">Cargando...</span>
-                    </p>
-                </div>
-            </div>
         </aside>
 
         <!-- Main Content -->
         <main class="content">
             <!-- Upload Section -->
             <div class="card" id="uploadSection">
-                <div class="card-header">
-                    <i class="fas fa-upload"></i> Subir Imagen
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span><i class="fas fa-upload"></i> Subir Imagen</span>
+                    <button class="btn btn-secondary btn-sm" id="newAnalysisBtn" onclick="resetUpload()" style="display: none;">
+                        <i class="fas fa-redo"></i> Nuevo Análisis
+                    </button>
                 </div>
                 <div class="card-body">
                     <div id="noPatientAlert" class="alert alert-error" style="display: none;">
@@ -910,18 +873,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="abcd-disclaimer">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <p><strong>Aviso:</strong> Este análisis es únicamente orientativo y no sustituye el diagnóstico profesional. 
-                            Consulte siempre con un dermatólogo para una evaluación clínica completa.</p>
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 1.5rem;">
-                        <button class="btn btn-primary" onclick="resetUpload()">
-                            <i class="fas fa-redo"></i> Nuevo Análisis
-                        </button>
                     </div>
                 </div>
             </div>
@@ -1008,18 +959,8 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await loadModels();
             await loadPatients();
-            await checkHealth();
             setupDragDrop();
         });
-
-        async function checkHealth() {
-            try {
-                const data = await fetchAPI('/health');
-                document.getElementById('deviceInfo').textContent = data.device;
-            } catch (e) {
-                document.getElementById('deviceInfo').textContent = 'Error de conexión';
-            }
-        }
 
         async function loadModels() {
             try {
@@ -1273,6 +1214,7 @@
             document.getElementById('uploadZone').style.display = 'block';
             document.getElementById('previewContainer').classList.remove('active');
             document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('newAnalysisBtn').style.display = 'none';
         }
 
         async function runPrediction() {
@@ -1343,6 +1285,7 @@
             }
             
             document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('newAnalysisBtn').style.display = 'inline-flex';
         }
 
         function displayABCDFeatures(abcd) {
